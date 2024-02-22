@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="UTF-8" />
+      <title>CPSC 424, Lab 2, Exercise 1</title>
+      <style>
+         body {
+            background-color: #dddddd;
+         }
+         canvas {
+            background-color: white;
+            display: block;
+            margin: 0 auto; 
+         }
+         #canvasholder {
+            border: 2px solid black;
+            float: left;
+         }
+      </style>
+      <script>
+         "use strict";
+         
+         var canvas;
+         var graphics;
+         var pixelSize;
+
+         function draw() {
+            graphics.clearRect(0, 0, 600, 600);
+            
+            graphics.rotate(Math.PI/100);
+
+            let orange = "orange";
+            let white = "rgba(255, 255, 255, 1)";
+            let black = "rgba(0, 0, 0, 1)";
+
+            // Kwadrat
+            var squareSize = 200; 
+            var squareX = (canvas.width - squareSize) / 2; 
+            var squareY = (canvas.height - squareSize) / 2; 
+            graphics.beginPath();
+            graphics.fillStyle = orange; 
+            graphics.fillRect(squareX, squareY, squareSize, squareSize);
+            graphics.strokeRect(squareX, squareY, squareSize, squareSize);
+
+            // Oczy
+            graphics.beginPath();
+            graphics.fillStyle = white;
+            graphics.strokeStyle = black; 
+            graphics.fillCircle(squareX + 35, squareY + 50, 15);
+            graphics.fill();  
+            graphics.stroke(); 
+            graphics.fillCircle(squareX + 165, squareY + 50, 15);
+            graphics.fill();  
+            graphics.stroke(); 
+
+            graphics.fillStyle = black;
+            graphics.strokeStyle = black; 
+            graphics.fillCircle(squareX + 34, squareY + 50, 9);
+            graphics.fill(); 
+            graphics.fillCircle(squareX + 164, squareY + 50, 9);
+            graphics.fill();  
+
+            graphics.fillStyle = white; 
+            graphics.strokeStyle = white;
+            graphics.fillCircle(squareX + 30, squareY + 46, 5);
+            graphics.fill(); 
+            graphics.fillCircle(squareX + 160, squareY + 46, 5);
+            graphics.fill();  
+
+            // Usta
+            graphics.beginPath();
+            graphics.fillStyle = black;
+            graphics.strokeStyle = black;
+
+            graphics.moveTo(squareX + 25, squareY + 110);
+            graphics.bezierCurveTo(squareX + 25, squareY + 145, squareX + 165, squareY + 145, squareX + 165, squareY + 110 );
+            graphics.bezierCurveTo(squareX + 125, squareY + 195, squareX + 65, squareY + 180, squareX + 24, squareY + 110 );
+            graphics.fill(); 
+            graphics.stroke(); 
+            graphics.moveTo(squareX, squareY + 120 );
+            graphics.bezierCurveTo(squareX, squareY + 120, squareX + 20, squareY + 125, squareX + 25, squareY + 90 );
+            graphics.bezierCurveTo(squareX + 25, squareY + 90, squareX + 30, squareY + 130, squareX, squareY + 120 );
+            graphics.fill(); 
+            graphics.stroke(); 
+            graphics.moveTo(squareX + 190, squareY + 125 );
+            graphics.bezierCurveTo(squareX + 190, squareY + 125, squareX + 170, squareY + 130, squareX + 165, squareY + 95 );
+            graphics.bezierCurveTo(squareX + 165, squareY + 95, squareX + 160, squareY + 135, squareX + 190, squareY + 125 );
+            graphics.fill(); 
+            graphics.stroke(); 
+
+            // Zęby
+            graphics.fillStyle = white; 
+            graphics.fillRect(squareX + 85, squareY + 135, 19, 22);
+            graphics.fillRect(squareX + 105, squareY + 135, 19, 16);
+         
+         }
+
+         function applyWindowToViewportTransformation(
+           left,
+           right,
+           bottom,
+           top,
+           preserveAspect
+         ) {
+           var displayAspect, windowAspect;
+           var excess;
+           var pixelwidth, pixelheight;
+           if (preserveAspect) {
+             displayAspect = Math.abs(canvas.height / canvas.width);
+             windowAspect = Math.abs((top - bottom) / (right - left));
+             if (displayAspect > windowAspect) {
+               excess = (top - bottom) * (displayAspect / windowAspect - 1);
+               top = top + excess / 2;
+               bottom = bottom - excess / 2;
+             } else if (displayAspect < windowAspect) {
+               excess = (right - left) * (windowAspect / displayAspect - 1);
+               right = right + excess / 2;
+               left = left - excess / 2;
+             }
+           }
+           graphics.scale(
+             canvas.width / (right - left),
+             canvas.height / (bottom - top)
+           );
+           graphics.translate(-left, -top);
+           pixelwidth = Math.abs((right - left) / canvas.width);
+           pixelheight = Math.abs((bottom - top) / canvas.height);
+           pixelSize = Math.max(pixelwidth, pixelheight);
+         } 
+         
+         function addGraphicsContextExtras(graphics) {
+           graphics.strokeLine = function (x1, y1, x2, y2) {
+             this.beginPath();
+             this.moveTo(x1, y1);
+             this.lineTo(x2, y2);
+             this.stroke();
+           };
+           graphics.fillCircle = function (x, y, r) {
+             this.beginPath();
+             this.arc(x, y, r, 0, 2 * Math.PI, false);
+             this.fill();
+           };
+           graphics.strokeCircle = function (x, y, radius) {
+             this.beginPath();
+             this.arc(x, y, radius, 0, 2 * Math.PI, false);
+             this.stroke();
+           };
+           graphics.fillPoly = function () {
+             if (arguments.length < 6) return;
+             this.beginPath();
+             this.moveTo(arguments[0], arguments[1]);
+             for (var i = 2; i + 1 < arguments.length; i = i + 2) {
+               this.lineTo(arguments[i], arguments[i + 1]);
+             }
+             this.closePath();
+             this.fill();
+           };
+           graphics.strokePoly = function () {
+             if (arguments.length < 4) return;
+             this.beginPath();
+             this.moveTo(arguments[0], arguments[1]);
+             for (var i = 2; i + 1 < arguments.length; i = i + 2) {
+               this.lineTo(arguments[i], arguments[i + 1]);
+             }
+             this.closePath();
+             this.stroke();
+           };
+           graphics.fillOval = function (x, y, horizontalRadius, verticalRadius) {
+             this.save();
+             this.translate(x, y);
+             this.scale(horizontalRadius, verticalRadius);
+             this.beginPath();
+             this.arc(0, 0, 1, 0, 2 * Math.PI, false);
+             this.restore();
+             this.fill();
+           };
+           graphics.strokeOval = function (
+             x,
+             y,
+             horizontalRadius,
+             verticalRadius
+           ) {
+             this.save();
+             this.translate(x, y);
+             this.scale(horizontalRadius, verticalRadius);
+             this.beginPath();
+             this.arc(0, 0, 1, 0, 2 * Math.PI, false);
+             this.restore();
+             this.stroke();
+           };
+           graphics.getRGB = function (x, y) {
+             var color = this.getImageData(x, y, 1, 1);
+             return color.data;
+           };
+         }
+         
+         function init() {
+           try {
+             canvas = document.getElementById("canvas");
+             graphics = canvas.getContext("2d");
+           } catch (e) {
+             document.getElementById("canvasholder").innerHTML =
+               "Canvas graphics is not supported.<br>" +
+               "An error occurred while initializing graphics.";
+           }
+           addGraphicsContextExtras(graphics);
+           draw();
+         }
+      </script>
+   </head>
+   <body onload="init()">
+      <h2 style="text-align: left;">CS 424, Lab 2, Exercise 1</h2>
+      <noscript>
+         <p style="text-align: center;">JavaScript is required to use this page.</p>
+      </noscript>
+      <div id="canvasholder">
+         <canvas id="canvas" width="600" height="600">
+            Canvas not supported.
+         </canvas>
+      </div>
+   </body>
+</html>
